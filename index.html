@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=rzQJHl7hijBT&format=png&color=000000">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <title>Exibir Temperatura</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<style>
+  body {
+      font-family: 'Roboto', Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(to right, #6dd5ed, #2193b0);
+      color: #fff;
+  }
+
+  h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+  }
+
+  .container {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      display: inline-block;
+  }
+
+  input {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+  }
+
+  button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background: #ff7e5f;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+  }
+
+  button:hover {
+      background: #ff3e5f;
+  }
+
+  p {
+      font-size: 18px;
+      margin: 20px 0;
+  }
+
+  canvas {
+      margin-top: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<body>
+  <h1>Previsão do Tempo</h1>
+  <input type="number" id="latitude" placeholder="Latitude" value="45.52">
+  <input type="number" id="longitude" placeholder="Longitude" value="13.41">
+  <input type="number" id="dias" placeholder="Quantidade de dias" value="1" min="1" max="7">
+  <button id="gerarGrafico">Gerar Gráfico</button>
+  <p id="mostrarDados">Insira os valores e clique no botão para ver a previsão.</p>
+  <canvas id="graficoTemperatura" width="700" height="350"></canvas>
+
+<script>
+
+  document.getElementById('gerarGrafico').addEventListener('click', async function() {
+   
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+    const dias = document.getElementById('dias').value;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&forecast_days=${dias}`;
+
+    try {
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const temperaturas = data.hourly.temperature_2m;
+      const horarios = data.hourly.time;
+      const ctx = document.getElementById('graficoTemperatura').getContext('2d');
+      
+      if (window.meuGrafico) {
+        window.meuGrafico.destroy();
+      }
+
+      window.meuGrafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: horarios,
+          datasets: [{
+            label: 'Temperatura (°C)',
+            data: temperaturas,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Horários'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Temperatura (°C)'
+              }
+            }
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Erro ao obter dados:', error);
+    }
+    
+  });
+
+</script>
+</body>
+</html>
